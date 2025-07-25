@@ -18,8 +18,8 @@ defmodule AshExpression.Transformers.BuildExpressions do
     |> Spark.Dsl.Transformer.get_entities([:expressions])
     |> Enum.reduce_while({:ok, dsl_state}, fn expr, {:ok, dsl_state} ->
       try do
-        parsed = build_expression(expr.expression)
-        updated_expr = Map.put(expr, :parsed, parsed)
+        parsed_ir = build_expression(expr.source_ast)
+        updated_expr = Map.put(expr, :parsed_ir, parsed_ir)
 
         {:cont,
          {:ok,
@@ -64,6 +64,15 @@ defmodule AshExpression.Transformers.BuildExpressions do
   defp build_expression({:in, _meta, [left, right]}) do
     %Call{
       name: :in,
+      operator?: true,
+      args: [build_expression(left), build_expression(right)]
+    }
+  end
+  
+  # Arithmetic operators
+  defp build_expression({op, _meta, [left, right]}) when op in [:+, :-, :*, :/] do
+    %Call{
+      name: op,
       operator?: true,
       args: [build_expression(left), build_expression(right)]
     }

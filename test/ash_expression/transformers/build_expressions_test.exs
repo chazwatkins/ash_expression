@@ -18,7 +18,7 @@ defmodule AshExpression.Transformers.BuildExpressionsTest do
       # First expression: status == :active
       first_expr = Enum.at(exprs, 0)
 
-      assert Map.has_key?(first_expr, :parsed)
+      assert Map.has_key?(first_expr, :parsed_ir)
 
       assert %Call{
                name: :==,
@@ -27,7 +27,7 @@ defmodule AshExpression.Transformers.BuildExpressionsTest do
                  %Ref{attribute: :status, relationship_path: []},
                  :active
                ]
-             } = first_expr.parsed
+             } = first_expr.parsed_ir
 
       # Second expression: age > 18
       second_expr = Enum.at(exprs, 1)
@@ -39,7 +39,7 @@ defmodule AshExpression.Transformers.BuildExpressionsTest do
                  %Ref{attribute: :age, relationship_path: []},
                  18
                ]
-             } = second_expr.parsed
+             } = second_expr.parsed_ir
     end
 
     test "preserves original AST alongside parsed structure" do
@@ -47,9 +47,9 @@ defmodule AshExpression.Transformers.BuildExpressionsTest do
       first_expr = Enum.at(exprs, 0)
 
       # Should still have the original quoted expression (structure comparison)
-      assert {:==, _meta, [{:status, _, _}, :active]} = first_expr.expression
+      assert {:==, _meta, [{:status, _, _}, :active]} = first_expr.source_ast
       # And the parsed version
-      assert %Call{} = first_expr.parsed
+      assert is_struct(first_expr.parsed_ir, Call)
     end
   end
 
@@ -75,7 +75,7 @@ defmodule AshExpression.Transformers.BuildExpressionsTest do
                  %Ref{attribute: :active?},
                  %Call{name: :>=, args: [%Ref{attribute: :age}, 21]}
                ]
-             } = first_expr.parsed
+             } = first_expr.parsed_ir
     end
 
     test "handles not operator" do
@@ -88,7 +88,7 @@ defmodule AshExpression.Transformers.BuildExpressionsTest do
                name: :not,
                operator?: true,
                args: [%Ref{attribute: :deleted?}]
-             } = second_expr.parsed
+             } = second_expr.parsed_ir
     end
   end
 end

@@ -6,9 +6,9 @@ defmodule AshExpression.Dsl do
   @expr %Spark.Dsl.Entity{
     name: :expr,
     target: AshExpression.Dsl.Expr,
-    args: [:expression],
+    args: [:source_ast],
     schema: [
-      expression: [
+      source_ast: [
         type: :quoted,
         required: true,
         doc: "The expression to define"
@@ -24,7 +24,10 @@ defmodule AshExpression.Dsl do
 
   use Spark.Dsl.Extension,
     sections: [@expressions],
-    transformers: [AshExpression.Transformers.BuildExpressions]
+    transformers: [
+      AshExpression.Transformers.BuildExpressions,
+      AshExpression.Transformers.ClassifyExpressions
+    ]
 end
 
 defmodule AshExpression.Dsl.Expr do
@@ -32,5 +35,10 @@ defmodule AshExpression.Dsl.Expr do
   Represents an expression entity in the DSL.
   """
 
-  defstruct [:expression]
+  defstruct [
+    :source_ast,     # Original quoted AST
+    :parsed_ir,      # Structured Ref/Call intermediate representation  
+    :type,           # :compile_time or :runtime
+    :result          # Pre-computed result for compile_time expressions
+  ]
 end
